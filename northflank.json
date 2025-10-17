@@ -1,0 +1,97 @@
+{
+  "apiVersion": "v1",
+  "kind": "DeploymentTemplate",
+  "project": {
+    "id": "livekit-frontend",
+    "name": "LiveKit Frontend Standalone"
+  },
+  "spec": {
+    "project": {
+      "name": "livekit-frontend",
+      "description": "Standalone LiveKit Voice AI React Frontend",
+      "region": "us-east",
+      "color": "#002cf2"
+    },
+    "services": [
+      {
+        "name": "livekit-frontend",
+        "type": "combined-service",
+        "billing": {
+          "deploymentPlan": "nf-compute-20"
+        },
+        "deployment": {
+          "instances": 1,
+          "docker": {
+            "configType": "dockerfile",
+            "dockerfile": {
+              "buildEngine": "kaniko",
+              "dockerFilePath": "/Dockerfile",
+              "dockerWorkDir": "/"
+            }
+          },
+          "storage": {
+            "ephemeralStorage": {
+              "storageSize": 1024
+            }
+          }
+        },
+        "git": {
+          "projectType": "github",
+          "gitCredential": "github-credential"
+        },
+        "ports": [
+          {
+            "name": "http",
+            "internalPort": 3000,
+            "public": true,
+            "protocol": "HTTP"
+          }
+        ],
+        "env": {
+          "NODE_ENV": "production",
+          "PORT": "3000",
+          "NEXT_TELEMETRY_DISABLED": "1"
+        },
+        "secretEnv": [
+          "LIVEKIT_API_KEY",
+          "LIVEKIT_API_SECRET",
+          "LIVEKIT_URL"
+        ],
+        "healthCheck": {
+          "path": "/api/health",
+          "port": 3000,
+          "initialDelaySeconds": 30,
+          "periodSeconds": 10,
+          "timeoutSeconds": 5,
+          "failureThreshold": 3
+        },
+        "scaling": {
+          "horizontalPodAutoscaler": {
+            "minReplicas": 1,
+            "maxReplicas": 3,
+            "targetCPUUtilizationPercentage": 70,
+            "targetMemoryUtilizationPercentage": 80
+          }
+        },
+        "resources": {
+          "cpu": "500m",
+          "memory": "1Gi"
+        }
+      }
+    ],
+    "secrets": [
+      {
+        "name": "LIVEKIT_API_KEY",
+        "description": "LiveKit API key for authentication"
+      },
+      {
+        "name": "LIVEKIT_API_SECRET",
+        "description": "LiveKit API secret for authentication"
+      },
+      {
+        "name": "LIVEKIT_URL",
+        "description": "LiveKit server WebSocket URL"
+      }
+    ]
+  }
+}
